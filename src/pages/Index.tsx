@@ -14,7 +14,7 @@ import CTABlock from "@/components/home/CTABlock";
 import Footer from "@/components/Footer";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import useSEOMeta from "@/hooks/useSEOMeta";
-import FounderStrip from "@/components/home/FounderStrip";
+// import FounderStrip from "@/components/home/FounderStrip";
 
 const Index = () => {
   useSEOMeta({
