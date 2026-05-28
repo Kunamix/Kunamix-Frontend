@@ -5,6 +5,7 @@ export interface FillFeedbackReview {
   _id: string;
   respondent: string;
   rating: number;
+  documentUrl: string;
   answers: {
     Email?: string;
     "Full Name"?: string;

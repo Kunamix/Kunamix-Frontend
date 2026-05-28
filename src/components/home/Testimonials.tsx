@@ -157,6 +157,9 @@ const Testimonials = () => {
                   >
                     {getInitials(name)}
                   </div>
+                  <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-display font-bold text-[0.875rem] shrink-0">
+                    <img src={t.documentUrl} alt="" />
+                  </div>
                   <div>
                     <p
                       className="text-sm font-semibold leading-none mb-[0.2rem]"
