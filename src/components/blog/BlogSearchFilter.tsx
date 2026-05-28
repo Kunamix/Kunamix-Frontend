@@ -2,13 +2,13 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Search, ChevronDown, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { CATEGORIES } from "@/data/blog";
 
 interface BlogSearchFilterProps {
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   selectedCategory: string | null;
   setSelectedCategory: (category: string | null) => void;
+  categories: string[]; // ← passed from parent (derived from API data)
 }
 
 const BlogSearchFilter = ({
@@ -16,12 +16,12 @@ const BlogSearchFilter = ({
   setSearchTerm,
   selectedCategory,
   setSelectedCategory,
+  categories,
 }: BlogSearchFilterProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [categorySearch, setCategorySearch] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -35,8 +35,7 @@ const BlogSearchFilter = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Filter categories based on the dropdown's internal search
-  const filteredCategories = CATEGORIES.filter((cat) =>
+  const filteredCategories = categories.filter((cat) =>
     cat.toLowerCase().includes(categorySearch.toLowerCase()),
   );
 
@@ -48,7 +47,7 @@ const BlogSearchFilter = ({
       className="mb-10 max-w-[1280px] mx-auto px-4 xs:px-5 sm:px-6 md:px-5"
     >
       <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center bg-card border border-border rounded-[14px] p-4 sm:p-5">
-        {/* Main Article Search Input */}
+        {/* Search Input */}
         <div className="relative w-full md:flex-1 md:max-w-[480px]">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <Input
@@ -60,7 +59,7 @@ const BlogSearchFilter = ({
           />
         </div>
 
-        {/* Searchable Category Dropdown */}
+        {/* Category Dropdown */}
         <div className="relative w-full md:w-[280px]" ref={dropdownRef}>
           <button
             onClick={() => setIsOpen(!isOpen)}
@@ -76,7 +75,6 @@ const BlogSearchFilter = ({
             />
           </button>
 
-          {/* Dropdown Menu Panel */}
           <AnimatePresence>
             {isOpen && (
               <motion.div
@@ -86,7 +84,7 @@ const BlogSearchFilter = ({
                 transition={{ duration: 0.15, ease: "easeOut" }}
                 className="absolute z-50 top-full mt-2 w-full bg-card border border-border rounded-xl shadow-lg overflow-hidden flex flex-col"
               >
-                {/* Internal Search Bar */}
+                {/* Internal search */}
                 <div className="p-2 border-b border-border bg-background/50">
                   <div className="relative">
                     <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground w-3.5 h-3.5" />
@@ -100,9 +98,8 @@ const BlogSearchFilter = ({
                   </div>
                 </div>
 
-                {/* Scrollable Category List */}
                 <div className="max-h-[240px] overflow-y-auto p-1 py-1.5 scrollbar-thin">
-                  {/* "All Articles" Option */}
+                  {/* All Articles */}
                   <button
                     onClick={() => {
                       setSelectedCategory(null);
@@ -119,7 +116,6 @@ const BlogSearchFilter = ({
                     {selectedCategory === null && <Check className="w-4 h-4" />}
                   </button>
 
-                  {/* Filtered Categories */}
                   {filteredCategories.length > 0 ? (
                     filteredCategories.map((category) => (
                       <button
@@ -127,7 +123,7 @@ const BlogSearchFilter = ({
                         onClick={() => {
                           setSelectedCategory(category);
                           setIsOpen(false);
-                          setCategorySearch(""); // Reset search on selection
+                          setCategorySearch("");
                         }}
                         className={`w-full flex items-center justify-between px-3 py-2 text-[0.875rem] rounded-md transition-colors mt-0.5 ${
                           selectedCategory === category

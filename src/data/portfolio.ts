@@ -24,7 +24,7 @@ export const PORTFOLIO_PROJECTS = [
       "PostgreSQL",
     ],
     image: quizApp, // Kept your existing image variable
-    link: "",
+    link: "https://dekhoexam.com",
     featured: true,
     confidential: false,
     results: [

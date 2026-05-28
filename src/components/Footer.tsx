@@ -9,6 +9,7 @@ const COMPANY_LINKS = [
   { name: "Portfolio", href: "/portfolio" },
   { name: "Blog", href: "/blog" },
   { name: "Contact", href: "/contact" },
+  { name: "Calculator", href: "/calculator" },
 ];
 
 const SERVICE_LINKS = [

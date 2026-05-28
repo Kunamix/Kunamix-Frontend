@@ -4,17 +4,51 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import useSEOMeta from "@/hooks/useSEOMeta";
-import { BLOG_POSTS } from "@/data/blog";
+import { useBlogs } from "@/hooks/useBlogs";
 
-// Modular Blog Components
 import BlogHero from "@/components/blog/BlogHero";
 import BlogSearchFilter from "@/components/blog/BlogSearchFilter";
 import BlogGrid from "@/components/blog/BlogGrid";
 import BlogFeaturedPost from "@/components/blog/BlogFeaturedPost";
 
+// ─── Skeleton loader ──────────────────────────────────────────────────────────
+const BlogSkeleton = () => (
+  <div className="pb-24 px-4 xs:px-5 sm:px-6 md:px-5 max-w-[1280px] mx-auto">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div
+          key={i}
+          className="rounded-[14px] border border-border overflow-hidden animate-pulse"
+        >
+          <div className="aspect-[16/9] bg-muted" />
+          <div className="p-5 space-y-3">
+            <div className="h-3 bg-muted rounded w-1/3" />
+            <div className="h-5 bg-muted rounded w-3/4" />
+            <div className="h-4 bg-muted rounded w-full" />
+            <div className="h-4 bg-muted rounded w-2/3" />
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 const BlogPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+
+  const { blogs, pagination, loading, error } = useBlogs({
+    page,
+    limit: 10,
+    category: selectedCategory,
+  });
+
+  // Reset to page 1 when category changes
+  useEffect(() => {
+    setPage(1);
+  }, [selectedCategory]);
 
   useSEOMeta({
     title: "Blog | Kunamix - MVP Development & Startup Guides",
@@ -31,30 +65,30 @@ const BlogPage = () => {
     window.scrollTo(0, 0);
   }, []);
 
-  const featuredPost = BLOG_POSTS[0];
-  const isFiltering = !!searchTerm || !!selectedCategory;
-
+  // Client-side search filter (on top of server-side category filter)
   const filteredBlogs = useMemo(() => {
-    return BLOG_POSTS.filter((blog) => {
-      const matchesSearch =
-        blog.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        blog.metaDescription.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        blog.keyword.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        blog.tags.some((tag) =>
-          tag.toLowerCase().includes(searchTerm.toLowerCase()),
-        );
+    if (!searchTerm) return blogs;
+    const term = searchTerm.toLowerCase();
+    return blogs.filter(
+      (blog) =>
+        blog.title.toLowerCase().includes(term) ||
+        blog.metaDescription.toLowerCase().includes(term) ||
+        blog.keyword.toLowerCase().includes(term) ||
+        blog.tags.some((tag) => tag.toLowerCase().includes(term)),
+    );
+  }, [blogs, searchTerm]);
 
-      const matchesCategory =
-        !selectedCategory || blog.category === selectedCategory;
-
-      return matchesSearch && matchesCategory;
-    });
-  }, [searchTerm, selectedCategory]);
-
-  // When not filtering, exclude featured post from the grid so it doesn't appear twice
+  const isFiltering = !!searchTerm || !!selectedCategory;
+  const featuredPost = blogs[0] ?? null;
   const gridBlogs = isFiltering
     ? filteredBlogs
-    : filteredBlogs.filter((b) => b.id !== featuredPost.id);
+    : filteredBlogs.filter((b) => featuredPost && b.id !== featuredPost.id);
+
+  // Derive unique categories from loaded blogs for the filter dropdown
+  const CATEGORIES = useMemo(
+    () => [...new Set(blogs.map((b) => b.category))].sort(),
+    [blogs],
+  );
 
   return (
     <motion.div
@@ -67,14 +101,63 @@ const BlogPage = () => {
 
       <main id="main-content">
         <BlogHero />
+
         <BlogSearchFilter
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
           selectedCategory={selectedCategory}
           setSelectedCategory={setSelectedCategory}
+          categories={CATEGORIES}
         />
-        {!isFiltering && <BlogFeaturedPost blog={featuredPost} />}
-        <BlogGrid blogs={gridBlogs} />
+
+        {/* Error state */}
+        {error && !loading && (
+          <div className="text-center py-20 px-4">
+            <p className="text-muted-foreground text-[1rem] mb-2">{error}</p>
+            <button
+              onClick={() => setPage(1)}
+              className="text-primary text-[0.875rem] font-semibold underline"
+            >
+              Try again
+            </button>
+          </div>
+        )}
+
+        {/* Loading state */}
+        {loading && <BlogSkeleton />}
+
+        {/* Content */}
+        {!loading && !error && (
+          <>
+            {!isFiltering && featuredPost && (
+              <BlogFeaturedPost blog={featuredPost} />
+            )}
+            <BlogGrid blogs={gridBlogs} />
+
+            {/* Pagination */}
+            {pagination && pagination.totalPages > 1 && !searchTerm && (
+              <div className="flex items-center justify-center gap-3 pb-16">
+                <button
+                  disabled={!pagination.hasPrevPage}
+                  onClick={() => setPage((p) => p - 1)}
+                  className="px-4 py-2 rounded-full border border-border text-[0.875rem] font-medium text-foreground disabled:opacity-40 hover:border-primary/40 transition-colors"
+                >
+                  ← Previous
+                </button>
+                <span className="text-[0.875rem] text-muted-foreground">
+                  Page {pagination.page} of {pagination.totalPages}
+                </span>
+                <button
+                  disabled={!pagination.hasNextPage}
+                  onClick={() => setPage((p) => p + 1)}
+                  className="px-4 py-2 rounded-full border border-border text-[0.875rem] font-medium text-foreground disabled:opacity-40 hover:border-primary/40 transition-colors"
+                >
+                  Next →
+                </button>
+              </div>
+            )}
+          </>
+        )}
       </main>
 
       <Footer />
