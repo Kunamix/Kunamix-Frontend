@@ -151,15 +151,22 @@ const Testimonials = () => {
 
                 {/* Author */}
                 <div className="flex items-center gap-3">
-                  <div
-                    className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-display font-bold text-[0.875rem] shrink-0"
-                    aria-hidden="true"
-                  >
-                    {getInitials(name)}
-                  </div>
-                  <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-display font-bold text-[0.875rem] shrink-0">
-                    <img src={t.documentUrl} alt="" />
-                  </div>
+                  {t.documentUrl ? (
+                    <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-display font-bold text-[0.875rem] shrink-0">
+                      <img
+                        src={t.documentUrl}
+                        alt=""
+                        className="w-10 h-10  rounded-full"
+                      />
+                    </div>
+                  ) : (
+                    <div
+                      className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-display font-bold text-[0.875rem] shrink-0"
+                      aria-hidden="true"
+                    >
+                      {getInitials(name)}
+                    </div>
+                  )}
                   <div>
                     <p
                       className="text-sm font-semibold leading-none mb-[0.2rem]"
